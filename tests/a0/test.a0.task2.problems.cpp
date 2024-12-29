@@ -71,7 +71,7 @@ Test test_a0_task2_problems_vector("a0.task2.problems.vector", []() {
     }
 
     // Use iterator to grab the last element of the vector
-    int last_element = *one_to_ten.end();
+    int last_element = *(--one_to_ten.end());
 
     // The last element is surely a 10... right?
     int expected = 10;
