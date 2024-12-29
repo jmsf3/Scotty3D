@@ -40,7 +40,7 @@ Test test_a0_task2_problems_numerical("a0.task2.problems.numerical", []() {
     // Ex) let x = 1, y = 4. y / 3 = 4 / 3 = 1.333 > 1, so x < y / 3. Return true.
 
     int factor = 3;
-    auto helper = [&](int x, int y) { return x < (y / factor); };
+    auto helper = [&](int x, int y) { return x * factor < y; };
 
     int j = 0;
     for (auto& v : target) {
