@@ -2,6 +2,9 @@
 #include "pipeline.h"
 
 #include <iostream>
+#include <cstdlib>
+#include <algorithm>
+#include <cmath>
 
 #include "../lib/log.h"
 #include "../lib/mathlib.h"
@@ -355,19 +358,47 @@ void Pipeline<p, P, flags>::rasterize_line(
 	if constexpr ((flags & PipelineMask_Interp) != Pipeline_Interp_Flat) {
 		assert(0 && "rasterize_line should only be invoked in flat interpolation mode.");
 	}
-	// A1T2: rasterize_line
 
-	// TODO: Check out the block comment above this function for more information on how to fill in
-	// this function!
-	// The OpenGL specification section 3.5 may also come in handy.
+	Vec3 a = va.fb_position;
+	Vec3 b = vb.fb_position;
 
-	{ // As a placeholder, draw a point in the middle of the line:
-		//(remove this code once you have a real implementation)
-		Fragment mid;
-		mid.fb_position = (va.fb_position + vb.fb_position) / 2.0f;
-		mid.attributes = va.attributes;
-		mid.derivatives.fill(Vec2(0.0f, 0.0f));
-		emit_fragment(mid);
+	int i = 0;
+	int j = 1;
+	int k = 2;
+
+	float dx = std::abs(b[i] - a[i]);
+	float dy = std::abs(b[j] - a[j]);
+
+	if (dx < dy) {
+		std::swap(i, j);
+	}
+
+	if (a[i] > b[i]) {
+		std::swap(a, b);
+	}
+
+	float t1 = std::floor(a[i]);
+	float t2 = std::floor(b[i]);
+
+	for (float u = t1; u <= t2; u++) {
+		float w = ((u + 0.5f) - a[i]) / (b[i] - a[i]);
+		float v = w * (b[j] - a[j]) + a[j];
+
+		Fragment frag;
+
+		if (dx > dy) {
+			frag.fb_position.x = std::floor(u) + 0.5f;
+			frag.fb_position.y = std::floor(v) + 0.5f;
+		} else {
+			frag.fb_position.x = std::floor(v) + 0.5f;
+			frag.fb_position.y = std::floor(u) + 0.5f;
+		}
+
+		frag.fb_position.z = w * (b[k] - a[k]) + a[k];
+		frag.attributes = va.attributes;
+		frag.derivatives.fill(Vec2(0.0f, 0.0f));
+
+		emit_fragment(frag);
 	}
 
 }
