@@ -113,7 +113,7 @@ void Pipeline<primitive_type, Program, flags>::run(std::vector<Vertex> const& ve
 
 	//--------------------------
 	// depth test + shade + blend fragments:
-	uint32_t out_of_range = 0; // check if rasterization produced fragments outside framebuffer 
+	uint32_t out_of_range = 0; // check if rasterization produced fragments outside framebuffer
 							   // (indicates something is wrong with clipping)
 	for (auto const& f : fragments) {
 
@@ -124,7 +124,7 @@ void Pipeline<primitive_type, Program, flags>::run(std::vector<Vertex> const& ve
 		// if clipping is working properly, this condition shouldn't be needed;
 		// however, it prevents crashes while you are working on your clipping functions,
 		// so we suggest leaving it in place:
-		if (x < 0 || (uint32_t)x >= framebuffer.width || 
+		if (x < 0 || (uint32_t)x >= framebuffer.width ||
 		    y < 0 || (uint32_t)y >= framebuffer.height) {
 			++out_of_range;
 			continue;
@@ -211,7 +211,7 @@ auto Pipeline<p, P, F>::lerp(ShadedVertex const& a, ShadedVertex const& b, float
  *  	emit_vertex: call to produce truncated line
  *
  * If clipping shortens the line, attributes of the shortened line should respect the pipeline's interpolation mode.
- * 
+ *
  * If no portion of the line remains after clipping, emit_vertex will not be called.
  *
  * The clipped line should have the same direction as the full line.
@@ -300,7 +300,7 @@ void Pipeline<p, P, flags>::clip_line(ShadedVertex const& va, ShadedVertex const
  *  	emit_vertex: call to produce clipped triangles (three calls per triangle)
  *
  * If clipping truncates the triangle, attributes of the new vertices should respect the pipeline's interpolation mode.
- * 
+ *
  * If no portion of the triangle remains after clipping, emit_vertex will not be called.
  *
  * The clipped triangle(s) should have the same winding order as the full triangle.
@@ -324,7 +324,7 @@ void Pipeline<p, P, flags>::clip_triangle(
  * calls emit_fragment( frag ) for every pixel "covered" by the line (va.fb_position.xy, vb.fb_position.xy).
  *
  *    a pixel (x,y) is "covered" by the line if it exits the inscribed diamond:
- * 
+ *
  *        (x+0.5,y+1)
  *        /        \
  *    (x,y+0.5)  (x+1,y+0.5)
@@ -332,11 +332,11 @@ void Pipeline<p, P, flags>::clip_triangle(
  *         (x+0.5,y)
  *
  *    to avoid ambiguity, we consider diamonds to contain their left and bottom points
- *    but not their top and right points. 
- * 
+ *    but not their top and right points.
+ *
  * 	  since 45 degree lines breaks this rule, our rule in general is to rasterize the line as if its
- *    endpoints va and vb were at va + (e, e^2) and vb + (e, e^2) where no smaller nonzero e produces 
- *    a different rasterization result. 
+ *    endpoints va and vb were at va + (e, e^2) and vb + (e, e^2) where no smaller nonzero e produces
+ *    a different rasterization result.
  *    We will not explicitly check for 45 degree lines along the diamond edges (this will be extra credit),
  *    but you should be able to handle 45 degree lines in every other case (such as starting from pixel centers)
  *
@@ -377,12 +377,12 @@ void Pipeline<p, P, flags>::rasterize_line(
 		std::swap(a, b);
 	}
 
-	float t1 = std::floor(a[i]);
-	float t2 = std::floor(b[i]);
+	float u1 = std::floor(a[i]);
+	float u2 = std::floor(b[i]);
 
-	for (float u = t1; u <= t2; u++) {
-		float w = ((u + 0.5f) - a[i]) / (b[i] - a[i]);
-		float v = w * (b[j] - a[j]) + a[j];
+	for (float u = u1; u <= u2; u++) {
+		float t = ((u + 0.5f) - a[i]) / (b[i] - a[i]);
+		float v = a[j] + t * (b[j] - a[j]);
 
 		Fragment frag;
 
@@ -394,7 +394,7 @@ void Pipeline<p, P, flags>::rasterize_line(
 			frag.fb_position.y = std::floor(u) + 0.5f;
 		}
 
-		frag.fb_position.z = w * (b[k] - a[k]) + a[k];
+		frag.fb_position.z = a[k] + t * (b[k] - a[k]);
 		frag.attributes = va.attributes;
 		frag.derivatives.fill(Vec2(0.0f, 0.0f));
 
@@ -432,7 +432,7 @@ void Pipeline<p, P, flags>::rasterize_line(
  *  fragment center lies on that edge, rasterize_triangle should
  *  make sure that exactly one of the triangles emits that fragment.
  *  (Otherwise, speckles or cracks can appear in the final render.)
- * 
+ *
  *  For degenerate (co-linear) triangles, you may consider them to not be on any side of an edge.
  * 	Thus, even if two degnerate triangles share an edge that contains a fragment center, you don't need to emit it.
  *  You will not lose points for doing something reasonable when handling this case
